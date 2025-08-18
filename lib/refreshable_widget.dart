@@ -195,6 +195,9 @@ class _MultiFutureRefreshHandler<T> extends ChangeNotifier {
   /// The first error encountered during execution, if any.
   Object? _error;
 
+  /// Whether this handler has been disposed.
+  bool _disposed = false;
+
   /// Creates a [_MultiFutureRefreshHandler] with the given future functions.
   ///
   /// [futureFunctions] is a list of functions that return futures to be
@@ -211,19 +214,26 @@ class _MultiFutureRefreshHandler<T> extends ChangeNotifier {
   /// Listeners are notified when the loading state changes at the beginning
   /// and end of the operation.
   Future<void> initialize() async {
+    if (_disposed) return;
+
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
     _error = null;
 
     try {
       for (int i = 0; i < _futureFunctions.length; i++) {
+        if (_disposed) return;
         await _futureFunctions[i]();
       }
     } catch (e) {
-      _error = e;
+      if (!_disposed) {
+        _error = e;
+      }
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (!_disposed) {
+        _isLoading = false;
+        _safeNotifyListeners();
+      }
     }
   }
 
@@ -248,6 +258,19 @@ class _MultiFutureRefreshHandler<T> extends ChangeNotifier {
   /// hasn't been called yet. Only the first error is captured when
   /// multiple futures fail simultaneously.
   Object? get error => _error;
+
+  /// Safely calls notifyListeners only if the handler is not disposed.
+  void _safeNotifyListeners() {
+    if (!_disposed) {
+      notifyListeners();
+    }
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
 }
 
 /// A widget that handles multiple futures with refresh capability.
