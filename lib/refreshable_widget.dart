@@ -32,6 +32,11 @@ class _RefreshWidget extends StatefulWidget {
   /// If provided, this widget will be used instead of the default refresh indicator.
   final Widget? customIndicator;
 
+  /// Optional custom refresh indicator trigger mode.
+  /// If null, uses the default trigger mode.
+  /// Optional custom refresh indicator trigger mode.
+  final RefreshIndicatorTriggerMode? triggerMode;
+
   /// Creates a RefreshWidget.
   const _RefreshWidget({
     super.key,
@@ -43,6 +48,7 @@ class _RefreshWidget extends StatefulWidget {
     this.strokeWidth,
     this.notificationPredicate,
     this.customIndicator,
+    this.triggerMode,
   });
 
   @override
@@ -90,7 +96,7 @@ class _RefreshWidgetState extends State<_RefreshWidget>
         },
         notificationPredicate:
             widget.notificationPredicate ?? defaultScrollNotificationPredicate,
-        triggerMode: RefreshIndicatorTriggerMode.anywhere,
+        triggerMode: widget.triggerMode ?? RefreshIndicatorTriggerMode.anywhere,
         child: Stack(
           children: [
             _ensureScrollable(widget.child),
@@ -123,7 +129,7 @@ class _RefreshWidgetState extends State<_RefreshWidget>
       displacement: widget.displacement ?? 40.0,
       notificationPredicate:
           widget.notificationPredicate ?? defaultScrollNotificationPredicate,
-      triggerMode: RefreshIndicatorTriggerMode.anywhere,
+      triggerMode: widget.triggerMode ?? RefreshIndicatorTriggerMode.anywhere,
       strokeWidth:
           widget.strokeWidth ?? RefreshProgressIndicator.defaultStrokeWidth,
       // Ensure the content is always scrollable for pull-to-refresh to work
@@ -190,7 +196,7 @@ class _MultiFutureRefreshHandler<T> extends ChangeNotifier {
   final List<Future<void> Function()> _futureFunctions;
 
   /// Whether the futures are currently being executed.
-  bool _isLoading = true;
+  bool _isLoading = false;
 
   /// The first error encountered during execution, if any.
   Object? _error;
@@ -205,20 +211,15 @@ class _MultiFutureRefreshHandler<T> extends ChangeNotifier {
   _MultiFutureRefreshHandler(List<Future<void> Function()> futureFunctions)
     : _futureFunctions = futureFunctions;
 
-  /// Initialize and execute all futures concurrently.
+  /// Refresh all futures by re-executing them.
   ///
-  /// This method sets the loading state to true, clears any previous errors,
-  /// and executes all futures in [_futureFunctions] concurrently using
-  /// [Future.wait]. If any future throws an error, it's captured in [_error].
-  ///
-  /// Listeners are notified when the loading state changes at the beginning
-  /// and end of the operation.
-  Future<void> initialize() async {
-    if (_disposed) return;
-
+  /// This is an alias for [initialize] that provides a more semantic
+  /// method name for refresh operations. It executes all futures
+  /// and updates the loading and error states.
+  Future<void> refresh() async {
     _isLoading = true;
-    _safeNotifyListeners();
     _error = null;
+    _safeNotifyListeners();
 
     try {
       for (int i = 0; i < _futureFunctions.length; i++) {
@@ -235,15 +236,6 @@ class _MultiFutureRefreshHandler<T> extends ChangeNotifier {
         _safeNotifyListeners();
       }
     }
-  }
-
-  /// Refresh all futures by re-executing them.
-  ///
-  /// This is an alias for [initialize] that provides a more semantic
-  /// method name for refresh operations. It executes all futures
-  /// concurrently and updates the loading and error states.
-  Future<void> refresh() async {
-    await initialize();
   }
 
   /// Whether any of the futures are currently executing.
@@ -352,6 +344,11 @@ class RefreshableWidget<T> extends StatefulWidget {
   ///
   /// The [builder] function is called to build the widget content based on
   /// the current loading state and any errors that occurred.
+
+  /// The [triggerMode] is used to determine when the refresh indicator should
+  /// appear. If null, uses the default trigger mode.
+  final RefreshIndicatorTriggerMode? triggerMode;
+
   const RefreshableWidget({
     super.key,
     required this.onRefresh,
@@ -362,6 +359,7 @@ class RefreshableWidget<T> extends StatefulWidget {
     this.displacement = 40.0,
     this.strokeWidth = 2.0,
     this.customIndicator,
+    this.triggerMode,
   });
 
   /// Creates a [RefreshableWidget] that handles a single future.
@@ -379,6 +377,7 @@ class RefreshableWidget<T> extends StatefulWidget {
   /// - [displacement]: Distance from top to show indicator (defaults to 40.0)
   /// - [strokeWidth]: Thickness of the progress indicator (defaults to 2.0)
   /// - [customIndicator]: Optional custom refresh indicator widget
+  /// - [triggerMode]: Optional custom refresh indicator trigger mode
   ///
   /// Example usage:
   /// ```dart
@@ -401,6 +400,7 @@ class RefreshableWidget<T> extends StatefulWidget {
     this.displacement = 40.0,
     this.strokeWidth = 2.0,
     this.customIndicator,
+    this.triggerMode,
   }) : onRefresh = [
          () async {
            await onRefresh();
@@ -421,7 +421,6 @@ class _RefreshableWidgetState<T> extends State<RefreshableWidget<T>> {
     super.initState();
     _handler = _MultiFutureRefreshHandler<T>(widget.onRefresh);
     _handler.addListener(_handleStateChange);
-    _handler.initialize();
   }
 
   @override
@@ -448,6 +447,7 @@ class _RefreshableWidgetState<T> extends State<RefreshableWidget<T>> {
       strokeWidth: widget.strokeWidth,
       customIndicator: widget.customIndicator,
       notificationPredicate: widget.notificationPredicate,
+      triggerMode: widget.triggerMode,
       child: widget.builder(context, _handler.isLoading, _handler.error),
     );
   }
