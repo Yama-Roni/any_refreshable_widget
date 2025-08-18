@@ -9,7 +9,7 @@ A powerful and flexible Flutter package that provides pull-to-refresh functional
 
 ![Refreshable Widget Demo](https://raw.githubusercontent.com/Yama-Roni/refreshable-widget/main/snapshot/example.gif)
 
-## ✨ Features
+## Features
 
 - 🔄 **Single & Multiple Future Support** - Handle one or multiple asynchronous operations concurrently
 - 🎨 **Customizable Refresh Indicator** - Full control over appearance and behavior
@@ -241,19 +241,19 @@ RefreshableWidget.single(
 )
 ```
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🐛 Issues
+## Issues
 
 If you encounter any issues or have suggestions, please file them in the [GitHub Issues](https://github.com/Yama-Roni/refreshable-widget/issues).
 
-## 📈 Changelog
+## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for a detailed changelog.
 
