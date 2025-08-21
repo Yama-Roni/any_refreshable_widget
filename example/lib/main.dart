@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:refreshable_widget/refreshable_widget.dart';
+import 'package:any_refreshable_widget/refreshable_widget.dart';
 
 void main() {
   runApp(const MainApp());

@@ -1,9 +1,9 @@
-# Refreshable Widget
+# Any Refreshable Widget
 
-[![pub package](https://img.shields.io/pub/v/refreshable_widget.svg)](https://pub.dev/packages/refreshable_widget)
-[![pub points](https://img.shields.io/pub/points/refreshable_widget)](https://pub.dev/packages/refreshable_widget/score)
-[![popularity](https://img.shields.io/pub/popularity/refreshable_widget)](https://pub.dev/packages/refreshable_widget/score)
-[![likes](https://img.shields.io/pub/likes/refreshable_widget)](https://pub.dev/packages/refreshable_widget/score)
+[![pub package](https://img.shields.io/pub/v/any_refreshable_widget.svg)](https://pub.dev/packages/any_refreshable_widget)
+[![pub points](https://img.shields.io/pub/points/any_refreshable_widget)](https://pub.dev/packages/any_refreshable_widget/score)
+[![popularity](https://img.shields.io/pub/popularity/any_refreshable_widget)](https://pub.dev/packages/any_refreshable_widget/score)
+[![likes](https://img.shields.io/pub/likes/any_refreshable_widget)](https://pub.dev/packages/any_refreshable_widget/score)
 
 A powerful and flexible Flutter package that provides pull-to-refresh functionality for any widget, with support for single and multiple futures, custom indicators, and comprehensive error handling.
 
@@ -24,7 +24,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  refreshable_widget: ^0.0.1
+  any_refreshable_widget: ^0.0.1
 ```
 
 Then run:
@@ -38,7 +38,7 @@ flutter pub get
 ### Import the package
 
 ```dart
-import 'package:refreshable_widget/refreshable_widget.dart';
+import 'package:any_refreshable_widget/refreshable_widget.dart';
 ```
 
 ### Basic Usage - Single Future

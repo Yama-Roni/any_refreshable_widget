@@ -1,4 +1,4 @@
-name: refreshable_widget
+name: any_refreshable_widget
 description: A powerful Flutter package providing pull-to-refresh functionality for any widget, with support for single/multiple futures, custom indicators, and comprehensive error handling.
 version: 0.0.1
 homepage: https://github.com/Yama-Roni/refreshable-widget

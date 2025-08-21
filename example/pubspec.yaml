@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  refreshable_widget:
+  any_refreshable_widget:
     path: ../
 
 dev_dependencies:
