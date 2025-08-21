@@ -13,6 +13,10 @@ topics:
   - pull-to-refresh
   - ui
 
+platforms:
+  android:
+  ios:
+
 environment:
   sdk: ^3.8.1
   flutter: ">=1.17.0"
