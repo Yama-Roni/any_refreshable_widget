@@ -273,7 +273,7 @@ class _MultiFutureRefreshHandler<T> extends ChangeNotifier {
 ///
 /// Example usage:
 /// ```dart
-/// RefreshableWidget(
+/// AnyRefreshableWidget(
 ///   onRefresh: [
 ///     () => fetchUserData(),
 ///     () => fetchNotifications(),
@@ -286,7 +286,7 @@ class _MultiFutureRefreshHandler<T> extends ChangeNotifier {
 ///   },
 /// )
 /// ```
-class RefreshableWidget<T> extends StatefulWidget {
+class AnyRefreshableWidget<T> extends StatefulWidget {
   /// List of future functions to execute when refreshing.
   ///
   /// All functions in this list will be executed concurrently using
@@ -337,7 +337,7 @@ class RefreshableWidget<T> extends StatefulWidget {
   /// at the top of the widget and animated during refresh.
   final Widget? customIndicator;
 
-  /// Creates a [RefreshableWidget] that handles multiple futures.
+  /// Creates a [AnyRefreshableWidget] that handles multiple futures.
   ///
   /// The [onRefresh] list contains all the future functions that will be
   /// executed concurrently when the user pulls to refresh.
@@ -349,7 +349,7 @@ class RefreshableWidget<T> extends StatefulWidget {
   /// appear. If null, uses the default trigger mode.
   final RefreshIndicatorTriggerMode? triggerMode;
 
-  const RefreshableWidget({
+  const AnyRefreshableWidget({
     super.key,
     required this.onRefresh,
     required this.builder,
@@ -362,11 +362,11 @@ class RefreshableWidget<T> extends StatefulWidget {
     this.triggerMode,
   });
 
-  /// Creates a [RefreshableWidget] that handles a single future.
+  /// Creates a [AnyRefreshableWidget] that handles a single future.
   ///
   /// This is a convenience constructor for cases where you only need to
   /// execute one asynchronous operation on refresh. It's equivalent to
-  /// creating a [RefreshableWidget] with a single-item [onRefresh] list.
+  /// creating a [AnyRefreshableWidget] with a single-item [onRefresh] list.
   ///
   /// Parameters:
   /// - [onRefresh]: The single future function to execute when refreshing
@@ -381,7 +381,7 @@ class RefreshableWidget<T> extends StatefulWidget {
   ///
   /// Example usage:
   /// ```dart
-  /// RefreshableWidget.single(
+  /// AnyRefreshableWidget.single(
   ///   onRefresh: () => fetchUserData(),
   ///   builder: (context, isLoading, error) {
   ///     if (error != null) return ErrorWidget(error);
@@ -390,7 +390,7 @@ class RefreshableWidget<T> extends StatefulWidget {
   ///   },
   /// )
   /// ```
-  RefreshableWidget.single({
+  AnyRefreshableWidget.single({
     super.key,
     required Future<void> Function() onRefresh,
     required Widget Function(BuildContext, bool, Object?) builder,
@@ -410,10 +410,10 @@ class RefreshableWidget<T> extends StatefulWidget {
            builder(context, isLoading, error));
 
   @override
-  State<RefreshableWidget<T>> createState() => _RefreshableWidgetState<T>();
+  State<AnyRefreshableWidget<T>> createState() => _RefreshableWidgetState<T>();
 }
 
-class _RefreshableWidgetState<T> extends State<RefreshableWidget<T>> {
+class _RefreshableWidgetState<T> extends State<AnyRefreshableWidget<T>> {
   late _MultiFutureRefreshHandler<T> _handler;
 
   @override

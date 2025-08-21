@@ -44,7 +44,7 @@ import 'package:any_refreshable_widget/refreshable_widget.dart';
 ### Basic Usage - Single Future
 
 ```dart
-RefreshableWidget.single(
+AnyRefreshableWidget.single(
   onRefresh: () async {
     // Your refresh logic here
     await fetchUserData();
@@ -64,7 +64,7 @@ RefreshableWidget.single(
 ### Advanced Usage - Multiple Futures
 
 ```dart
-RefreshableWidget(
+AnyRefreshableWidget(
   onRefresh: [
     () => fetchUserData(),
     () => fetchNotifications(),
@@ -87,7 +87,7 @@ RefreshableWidget(
 ### Custom Refresh Indicator
 
 ```dart
-RefreshableWidget.single(
+AnyRefreshableWidget.single(
   onRefresh: () => performRefresh(),
   refreshColor: Colors.blue,
   backgroundColor: Colors.white,
@@ -102,7 +102,7 @@ RefreshableWidget.single(
 ### Custom Indicator Widget
 
 ```dart
-RefreshableWidget.single(
+AnyRefreshableWidget.single(
   onRefresh: () => performRefresh(),
   customIndicator: Container(
     padding: const EdgeInsets.all(16),
@@ -124,7 +124,7 @@ RefreshableWidget.single(
 ### Error Handling
 
 ```dart
-RefreshableWidget.single(
+AnyRefreshableWidget.single(
   onRefresh: () async {
     // Simulate potential error
     if (Random().nextBool()) {
@@ -174,7 +174,7 @@ RefreshableWidget.single(
 ### With ListView
 
 ```dart
-RefreshableWidget.single(
+AnyRefreshableWidget.single(
   onRefresh: () => refreshListData(),
   builder: (context, isLoading, error) {
     if (error != null) return ErrorWidget(error);
@@ -194,7 +194,7 @@ RefreshableWidget.single(
 
 ## API Reference
 
-### RefreshableWidget
+### AnyRefreshableWidget
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
@@ -208,16 +208,16 @@ RefreshableWidget.single(
 | `triggerMode` | `RefreshIndicatorTriggerMode?` | ❌ | `anywhere` | When the indicator should trigger |
 | `notificationPredicate` | `bool Function(ScrollNotification)?` | ❌ | `null` | Custom scroll notification predicate |
 
-### RefreshableWidget.single
+### AnyRefreshableWidget.single
 
-Same parameters as `RefreshableWidget`, but `onRefresh` takes a single `Future<void> Function()` instead of a list.
+Same parameters as `AnyRefreshableWidget`, but `onRefresh` takes a single `Future<void> Function()` instead of a list.
 
 ## Advanced Configuration
 
 ### Custom Scroll Notification Predicate
 
 ```dart
-RefreshableWidget.single(
+AnyRefreshableWidget.single(
   onRefresh: () => performRefresh(),
   notificationPredicate: (ScrollNotification notification) {
     // Custom logic to determine when refresh should trigger
@@ -232,7 +232,7 @@ RefreshableWidget.single(
 ### Trigger Modes
 
 ```dart
-RefreshableWidget.single(
+AnyRefreshableWidget.single(
   onRefresh: () => performRefresh(),
   triggerMode: RefreshIndicatorTriggerMode.onEdge, // or .anywhere
   builder: (context, isLoading, error) {

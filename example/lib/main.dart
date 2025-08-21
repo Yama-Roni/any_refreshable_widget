@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:any_refreshable_widget/refreshable_widget.dart';
+import 'package:any_refreshable_widget/any_refreshable_widget.dart';
 
 void main() {
   runApp(const MainApp());
@@ -38,7 +38,7 @@ class MainApp extends StatelessWidget {
 
 /// Single Refreshable Widget
 Widget _singleRefreshableWidget() {
-  return RefreshableWidget.single(
+  return AnyRefreshableWidget.single(
     onRefresh: () async {
       await Future.delayed(const Duration(seconds: 2));
     },
@@ -50,7 +50,7 @@ Widget _singleRefreshableWidget() {
 
 /// Multi Refreshable Widget
 Widget _multiRefreshableWidget() {
-  return RefreshableWidget(
+  return AnyRefreshableWidget(
     onRefresh: [
       () => Future.delayed(const Duration(seconds: 1)),
       () => Future.delayed(const Duration(seconds: 1)),
@@ -63,7 +63,7 @@ Widget _multiRefreshableWidget() {
 
 /// Refresh with Custom Indicator
 Widget _refreshWithCustomIndicator() {
-  return RefreshableWidget.single(
+  return AnyRefreshableWidget.single(
     onRefresh: () async {
       await Future.delayed(const Duration(seconds: 2));
     },
@@ -76,7 +76,7 @@ Widget _refreshWithCustomIndicator() {
 
 /// Refresh with Custom Widget
 Widget _refreshWithCustomWidget() {
-  return RefreshableWidget.single(
+  return AnyRefreshableWidget.single(
     onRefresh: () async {
       await Future.delayed(const Duration(seconds: 2));
     },
@@ -90,7 +90,7 @@ Widget _refreshWithCustomWidget() {
 
 /// Refresh with Error Callback
 Widget _refreshWithErrorCallback() {
-  return RefreshableWidget.single(
+  return AnyRefreshableWidget.single(
     onRefresh: () async {
       await Future.delayed(const Duration(seconds: 2));
       throw Exception('Error');

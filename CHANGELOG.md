@@ -9,6 +9,6 @@
 * **Adaptive design** - Uses platform-appropriate refresh indicators (iOS/Android)
 * **Loading state management** - Built-in loading and error state handling with reactive notifications
 * **Flexible notification handling** - Customizable scroll notification predicates for refresh triggering
-* **Two widget variants** - Main `RefreshableWidget` for multiple futures and `RefreshableWidget.single` for single operations
+* **Two widget variants** - Main `AnyRefreshableWidget` for multiple futures and `AnyRefreshableWidget.single` for single operations
 * **Error handling** - Captures and exposes the first error encountered during refresh operations
 * **Animation support** - Smooth animations for custom indicators with built-in animation controller
