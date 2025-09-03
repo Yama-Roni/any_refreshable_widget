@@ -169,8 +169,7 @@ class _RefreshWidgetState extends State<_RefreshWidget>
       physics: const AlwaysScrollableScrollPhysics(),
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          minHeight:
-              mediaQuery.size.height -
+          minHeight: mediaQuery.size.height -
               (mediaQuery.padding.top +
                   mediaQuery.padding.bottom +
                   kToolbarHeight),
@@ -209,7 +208,7 @@ class _MultiFutureRefreshHandler<T> extends ChangeNotifier {
   /// [futureFunctions] is a list of functions that return futures to be
   /// executed concurrently when [initialize] or [refresh] is called.
   _MultiFutureRefreshHandler(List<Future<void> Function()> futureFunctions)
-    : _futureFunctions = futureFunctions;
+      : _futureFunctions = futureFunctions;
 
   /// Refresh all futures by re-executing them.
   ///
@@ -401,13 +400,13 @@ class AnyRefreshableWidget<T> extends StatefulWidget {
     this.strokeWidth = 2.0,
     this.customIndicator,
     this.triggerMode,
-  }) : onRefresh = [
-         () async {
-           await onRefresh();
-         },
-       ],
-       builder = ((context, isLoading, error) =>
-           builder(context, isLoading, error));
+  })  : onRefresh = [
+          () async {
+            await onRefresh();
+          },
+        ],
+        builder =
+            ((context, isLoading, error) => builder(context, isLoading, error));
 
   @override
   State<AnyRefreshableWidget<T>> createState() => _RefreshableWidgetState<T>();
