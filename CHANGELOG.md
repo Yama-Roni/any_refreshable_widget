@@ -1,3 +1,9 @@
+## 0.0.2
+
+* **Improved compatibility** - Updated SDK constraint to support broader range of Dart versions (>=2.17.0 <4.0.0)
+* **Flutter version update** - Updated minimum Flutter version requirement to 3.0.0 for better stability
+* **Example project updates** - Synchronized version constraints across main package and example project
+
 ## 0.0.1
 
 * **Initial release** - A comprehensive Flutter widget that provides pull-to-refresh functionality for any content
