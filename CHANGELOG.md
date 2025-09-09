@@ -1,3 +1,11 @@
+## 0.1.0
+
+* **Lifecycle callbacks** - Added `onBeforeRefresh` and `onAfterRefresh` callbacks with flexible sync/async support
+* **Concurrency control** - Added `RefreshConcurrency` enum to control future execution (sequential/concurrent)
+* **Sequential execution** - New option to execute multiple futures one after another (now default behavior)
+* **Enhanced documentation** - Comprehensive examples for lifecycle callbacks and concurrency modes
+* **Improved examples** - Updated example app with better UI and clearer demonstrations
+
 ## 0.0.2
 
 * **Improved compatibility** - Updated SDK constraint to support broader range of Dart versions (>=2.17.0 <4.0.0)

@@ -11,11 +11,13 @@ A powerful and flexible Flutter package that provides pull-to-refresh functional
 
 ## Features
 
-- 🔄 **Single & Multiple Future Support** - Handle one or multiple asynchronous operations concurrently
+- 🔄 **Single & Multiple Future Support** - Handle one or multiple asynchronous operations
 - 🎨 **Customizable Refresh Indicator** - Full control over appearance and behavior
 - 📱 **Universal Widget Support** - Works with any widget, automatically makes content scrollable
 - 🎯 **Smart Error Handling** - Comprehensive error states and callbacks
 - 🔧 **Highly Configurable** - Colors, displacement, stroke width, trigger modes, and more
+- ⚡ **Lifecycle Callbacks** - `onBeforeRefresh` and `onAfterRefresh` hooks with sync/async support
+- 🔀 **Flexible Concurrency** - Choose between concurrent (parallel) or sequential execution
 - 🚀 **Production Ready** - Thoroughly tested and optimized for real-world applications
 
 ## Installation
@@ -78,6 +80,40 @@ AnyRefreshableWidget(
       return const LoadingWidget();
     }
     return const ContentWidget();
+  },
+)
+```
+
+### Concurrency Control
+
+Control how multiple futures are executed:
+
+#### Concurrent Execution (Default)
+```dart
+AnyRefreshableWidget(
+  concurrency: RefreshConcurrency.concurrent,
+  onRefresh: [
+    () => fetchUserData(),      // These run simultaneously
+    () => fetchNotifications(), // for faster completion
+    () => fetchSettings(),
+  ],
+  builder: (context, isLoading, error) {
+    return YourContentWidget();
+  },
+)
+```
+
+#### Sequential Execution
+```dart
+AnyRefreshableWidget(
+  concurrency: RefreshConcurrency.sequential, // Default
+  onRefresh: [
+    () => authenticateUser(),   // Runs first
+    () => fetchUserData(),      // Then this
+    () => fetchNotifications(), // Finally this
+  ],
+  builder: (context, isLoading, error) {
+    return YourContentWidget();
   },
 )
 ```
@@ -192,6 +228,47 @@ AnyRefreshableWidget.single(
 )
 ```
 
+### Lifecycle Callbacks
+
+The package supports `onBeforeRefresh` and `onAfterRefresh` callbacks that can be either synchronous or asynchronous:
+
+#### Synchronous Callbacks
+```dart
+AnyRefreshableWidget.single(
+  onBeforeRefresh: () {
+    print('Starting refresh...');
+    // Synchronous setup logic
+  },
+  onRefresh: () => fetchData(),
+  onAfterRefresh: () {
+    print('Refresh completed!');
+    // Synchronous cleanup logic
+  },
+  builder: (context, isLoading, error) {
+    return YourContentWidget();
+  },
+)
+```
+
+#### Asynchronous Callbacks
+```dart
+AnyRefreshableWidget.single(
+  onBeforeRefresh: () async {
+    print('Starting refresh...');
+    await prepareForRefresh();
+    // Asynchronous setup logic
+  },
+  onRefresh: () => fetchData(),
+  onAfterRefresh: () {
+    print('Refresh completed!');
+    // Cleanup logic (always sync)
+  },
+  builder: (context, isLoading, error) {
+    return YourContentWidget();
+  },
+)
+```
+
 ## API Reference
 
 ### AnyRefreshableWidget
@@ -200,6 +277,9 @@ AnyRefreshableWidget.single(
 |-----------|------|----------|---------|-------------|
 | `onRefresh` | `List<Future<void> Function()>` | ✅ | - | List of async functions to execute on refresh |
 | `builder` | `Widget Function(BuildContext, bool, Object?)` | ✅ | - | Builder function with loading and error states |
+| `concurrency` | `RefreshConcurrency` | ❌ | `concurrent` | How futures should be executed (concurrent/sequential) |
+| `onBeforeRefresh` | `FutureOr<void> Function()?` | ❌ | `null` | Callback executed before refresh starts (sync/async) |
+| `onAfterRefresh` | `VoidCallback?` | ❌ | `null` | Callback executed after refresh completes |
 | `refreshColor` | `Color?` | ❌ | `null` | Color of the refresh indicator |
 | `backgroundColor` | `Color?` | ❌ | `null` | Background color of the refresh indicator |
 | `displacement` | `double` | ❌ | `40.0` | Distance from top to show indicator |
@@ -210,7 +290,24 @@ AnyRefreshableWidget.single(
 
 ### AnyRefreshableWidget.single
 
-Same parameters as `AnyRefreshableWidget`, but `onRefresh` takes a single `Future<void> Function()` instead of a list.
+Same parameters as `AnyRefreshableWidget`, but `onRefresh` takes a single `Future<void> Function()` instead of a list. The `concurrency` parameter is not applicable for single futures.
+
+### RefreshConcurrency Enum
+
+| Value | Description | Use Case |
+|-------|-------------|----------|
+| `RefreshConcurrency.concurrent` | Execute all futures simultaneously using `Future.wait` | fastest refresh when futures are independent |
+| `RefreshConcurrency.sequential` | Execute futures one by one in order | When futures depend on each other or to limit resource usage |
+
+## Callback Execution Order
+
+When a refresh is triggered, the callbacks execute in this order:
+
+1. **`onBeforeRefresh`** - Called first, awaited if async
+2. **Loading state** - `isLoading` becomes `true`, UI updates
+3. **`onRefresh`** - All futures execute concurrently
+4. **Loading state** - `isLoading` becomes `false`, UI updates  
+5. **`onAfterRefresh`** - Called last, always synchronous
 
 ## Advanced Configuration
 

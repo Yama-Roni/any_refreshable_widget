@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:any_refreshable_widget/any_refreshable_widget.dart';
 
@@ -16,6 +18,7 @@ class MainApp extends StatelessWidget {
       _refreshWithCustomIndicator(),
       _refreshWithCustomWidget(),
       _refreshWithErrorCallback(),
+      _refreshWithBeforeAfterCallback(),
     ];
 
     return MaterialApp(
@@ -99,6 +102,24 @@ Widget _refreshWithErrorCallback() {
       return error != null
           ? const Center(child: Text('Error Widget!!!'))
           : Center(child: Text('Refresh with Error Callback'));
+    },
+  );
+}
+
+/// Refresh with Before After Callback
+Widget _refreshWithBeforeAfterCallback() {
+  return AnyRefreshableWidget.single(
+    onBeforeRefresh: () {
+      log('onBeforeRefresh');
+    },
+    onRefresh: () async {
+      await Future.delayed(const Duration(seconds: 2));
+    },
+    onAfterRefresh: () {
+      log('onAfterRefresh');
+    },
+    builder: (context, isLoading, error) {
+      return Center(child: Text('Refresh with Before After Callback'));
     },
   );
 }

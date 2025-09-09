@@ -1,4 +1,23 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+
+/// A type-safe callback that can handle both synchronous and asynchronous operations.
+///
+/// This typedef uses FutureOr<void> which is the proper way to represent a function
+/// that can return either void (synchronous) or Future<void> (asynchronous).
+/// FutureOr is part of Dart's type system and provides better type safety than dynamic.
+typedef FlexibleCallback = FutureOr<void> Function();
+
+/// Defines how multiple futures should be executed during refresh.
+enum RefreshConcurrency {
+  /// Execute all futures concurrently (in parallel).
+  /// This is the default and fastest option as all operations run simultaneously.
+  concurrent,
+
+  /// Execute futures sequentially (one after another).
+  /// This is useful when futures depend on each other or when you want to limit resource usage.
+  sequential,
+}
 
 /// A widget that provides pull-to-refresh functionality for any content.
 ///
@@ -186,13 +205,23 @@ class _RefreshWidgetState extends State<_RefreshWidget>
 /// concurrently and provides unified loading and error states. It extends
 /// [ChangeNotifier] to notify listeners when the state changes.
 ///
-/// The handler automatically executes all futures using [Future.wait] to
-/// ensure they run concurrently rather than sequentially. If any future
-/// throws an error, the error is captured and made available through the
-/// [error] getter.
+/// The handler executes all futures according to the specified concurrency mode.
+/// By default, futures run sequentially, but can be configured
+/// to run concurrently. If any future throws an error, the error is captured and
+/// made available through the [error] getter.
 class _MultiFutureRefreshHandler<T> extends ChangeNotifier {
   /// List of future functions to execute when refreshing.
   final List<Future<void> Function()> _futureFunctions;
+
+  /// Callback function called before starting the refresh operation.
+  /// Can be either synchronous (void) or asynchronous (Future<void>).
+  final FlexibleCallback? _onBeforeRefresh;
+
+  /// Callback function called after completing the refresh operation.
+  final VoidCallback? _onAfterRefresh;
+
+  /// How the futures should be executed (concurrent or sequential).
+  final RefreshConcurrency _concurrency;
 
   /// Whether the futures are currently being executed.
   bool _isLoading = false;
@@ -206,24 +235,46 @@ class _MultiFutureRefreshHandler<T> extends ChangeNotifier {
   /// Creates a [_MultiFutureRefreshHandler] with the given future functions.
   ///
   /// [futureFunctions] is a list of functions that return futures to be
-  /// executed concurrently when [initialize] or [refresh] is called.
-  _MultiFutureRefreshHandler(List<Future<void> Function()> futureFunctions)
-      : _futureFunctions = futureFunctions;
+  /// executed when [initialize] or [refresh] is called.
+  /// [onBeforeRefresh] is called before starting the refresh operation.
+  /// Can be either synchronous or asynchronous.
+  /// [onAfterRefresh] is called after completing the refresh operation.
+  /// [concurrency] determines whether futures are executed concurrently or sequentially.
+  _MultiFutureRefreshHandler(
+    List<Future<void> Function()> futureFunctions, {
+    FlexibleCallback? onBeforeRefresh,
+    VoidCallback? onAfterRefresh,
+    RefreshConcurrency concurrency = RefreshConcurrency.concurrent,
+  })  : _futureFunctions = futureFunctions,
+        _onBeforeRefresh = onBeforeRefresh,
+        _onAfterRefresh = onAfterRefresh,
+        _concurrency = concurrency;
 
   /// Refresh all futures by re-executing them.
   ///
-  /// This is an alias for [initialize] that provides a more semantic
-  /// method name for refresh operations. It executes all futures
-  /// and updates the loading and error states.
+  /// This method executes all futures according to the specified concurrency mode.
+  /// It executes all futures and updates the loading and error states.
   Future<void> refresh() async {
+    // Call onBeforeRefresh callback before starting the refresh
+    if (_onBeforeRefresh != null) {
+      await _onBeforeRefresh!.call();
+    }
+
     _isLoading = true;
     _error = null;
     _safeNotifyListeners();
 
     try {
-      for (int i = 0; i < _futureFunctions.length; i++) {
-        if (_disposed) return;
-        await _futureFunctions[i]();
+      if (_concurrency == RefreshConcurrency.concurrent) {
+        // Execute all futures concurrently using Future.wait
+        final futures = _futureFunctions.map((fn) => fn()).toList();
+        await Future.wait(futures);
+      } else {
+        // Execute futures sequentially one by one
+        for (int i = 0; i < _futureFunctions.length; i++) {
+          if (_disposed) return;
+          await _futureFunctions[i]();
+        }
       }
     } catch (e) {
       if (!_disposed) {
@@ -233,6 +284,9 @@ class _MultiFutureRefreshHandler<T> extends ChangeNotifier {
       if (!_disposed) {
         _isLoading = false;
         _safeNotifyListeners();
+
+        // Call onAfterRefresh callback after completing the refresh
+        _onAfterRefresh?.call();
       }
     }
   }
@@ -293,6 +347,19 @@ class AnyRefreshableWidget<T> extends StatefulWidget {
   /// return a [Future<void>] that completes when its operation is done.
   final List<Future<void> Function()> onRefresh;
 
+  /// Callback function called before starting the refresh operation.
+  /// Can be either synchronous (void) or asynchronous (Future<void>).
+  final FlexibleCallback? onBeforeRefresh;
+
+  /// Callback function called after completing the refresh operation.
+  final VoidCallback? onAfterRefresh;
+
+  /// How the futures should be executed during refresh.
+  ///
+  /// - [RefreshConcurrency.concurrent]: All futures execute simultaneously
+  /// - [RefreshConcurrency.sequential] (default): Futures execute one after another
+  final RefreshConcurrency concurrency;
+
   /// Builder function that creates the widget content.
   ///
   /// Parameters:
@@ -351,7 +418,10 @@ class AnyRefreshableWidget<T> extends StatefulWidget {
   const AnyRefreshableWidget({
     super.key,
     required this.onRefresh,
+    this.onBeforeRefresh,
+    this.onAfterRefresh,
     required this.builder,
+    this.concurrency = RefreshConcurrency.sequential,
     this.notificationPredicate,
     this.refreshColor,
     this.backgroundColor,
@@ -392,6 +462,8 @@ class AnyRefreshableWidget<T> extends StatefulWidget {
   AnyRefreshableWidget.single({
     super.key,
     required Future<void> Function() onRefresh,
+    FlexibleCallback? onBeforeRefresh,
+    VoidCallback? onAfterRefresh,
     required Widget Function(BuildContext, bool, Object?) builder,
     this.notificationPredicate,
     this.refreshColor,
@@ -405,20 +477,30 @@ class AnyRefreshableWidget<T> extends StatefulWidget {
             await onRefresh();
           },
         ],
+        onBeforeRefresh = onBeforeRefresh,
+        onAfterRefresh = onAfterRefresh,
+        concurrency = RefreshConcurrency
+            .sequential, // Single future doesn't need concurrency option
         builder =
             ((context, isLoading, error) => builder(context, isLoading, error));
 
   @override
-  State<AnyRefreshableWidget<T>> createState() => _RefreshableWidgetState<T>();
+  State<AnyRefreshableWidget<T>> createState() =>
+      _AnyRefreshableWidgetState<T>();
 }
 
-class _RefreshableWidgetState<T> extends State<AnyRefreshableWidget<T>> {
+class _AnyRefreshableWidgetState<T> extends State<AnyRefreshableWidget<T>> {
   late _MultiFutureRefreshHandler<T> _handler;
 
   @override
   void initState() {
     super.initState();
-    _handler = _MultiFutureRefreshHandler<T>(widget.onRefresh);
+    _handler = _MultiFutureRefreshHandler<T>(
+      widget.onRefresh,
+      onBeforeRefresh: widget.onBeforeRefresh,
+      onAfterRefresh: widget.onAfterRefresh,
+      concurrency: widget.concurrency,
+    );
     _handler.addListener(_handleStateChange);
   }
 
