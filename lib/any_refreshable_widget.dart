@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 
 /// A type-safe callback that can handle both synchronous and asynchronous operations.
 ///
-/// This typedef uses FutureOr<void> which is the proper way to represent a function
-/// that can return either void (synchronous) or Future<void> (asynchronous).
+/// This typedef uses FutureOr which is the proper way to represent a function
+/// that can return either void (synchronous) or Future (asynchronous).
 /// FutureOr is part of Dart's type system and provides better type safety than dynamic.
 typedef FlexibleCallback = FutureOr<void> Function();
 
@@ -98,7 +98,7 @@ class _RefreshWidgetState extends State<_RefreshWidget>
   Widget build(BuildContext context) {
     /// If a custom indicator is provided, use it instead of the default refresh indicator.
     if (widget.customIndicator != null) {
-      return RefreshIndicator.noSpinner(
+      return RefreshIndicator(
         key: widget.key,
         onRefresh: () async {
           setState(() {
@@ -116,6 +116,10 @@ class _RefreshWidgetState extends State<_RefreshWidget>
         notificationPredicate:
             widget.notificationPredicate ?? defaultScrollNotificationPredicate,
         triggerMode: widget.triggerMode ?? RefreshIndicatorTriggerMode.anywhere,
+        backgroundColor: Colors.transparent,
+        color: Colors.transparent,
+        strokeWidth: 0,
+        elevation: 0,
         child: Stack(
           children: [
             _ensureScrollable(widget.child),
@@ -214,7 +218,7 @@ class _MultiFutureRefreshHandler<T> extends ChangeNotifier {
   final List<Future<void> Function()> _futureFunctions;
 
   /// Callback function called before starting the refresh operation.
-  /// Can be either synchronous (void) or asynchronous (Future<void>).
+  /// Can be either synchronous (void) or asynchronous (Future).
   final FlexibleCallback? _onBeforeRefresh;
 
   /// Callback function called after completing the refresh operation.
@@ -344,11 +348,11 @@ class AnyRefreshableWidget<T> extends StatefulWidget {
   ///
   /// All functions in this list will be executed concurrently using
   /// [Future.wait] when a refresh is triggered. Each function should
-  /// return a [Future<void>] that completes when its operation is done.
+  /// return a [Future] that completes when its operation is done.
   final List<Future<void> Function()> onRefresh;
 
   /// Callback function called before starting the refresh operation.
-  /// Can be either synchronous (void) or asynchronous (Future<void>).
+  /// Can be either synchronous (void) or asynchronous (Future).
   final FlexibleCallback? onBeforeRefresh;
 
   /// Callback function called after completing the refresh operation.

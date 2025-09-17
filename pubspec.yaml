@@ -1,6 +1,6 @@
 name: any_refreshable_widget
 description: A powerful Flutter package providing pull-to-refresh functionality for any widget, with support for single/multiple futures, custom indicators, and comprehensive error handling.
-version: 0.1.0
+version: 0.1.1
 homepage: https://github.com/Yama-Roni/any_refreshable_widget
 repository: https://github.com/Yama-Roni/any_refreshable_widget
 issue_tracker: https://github.com/Yama-Roni/any_refreshable_widget/issues
@@ -18,8 +18,8 @@ platforms:
   ios:
 
 environment:
-  sdk: ">=2.17.0 <4.0.0"
-  flutter: ">=3.0.0"
+  sdk: ">=2.19.0 <4.0.0"
+  flutter: ">=3.7.0"
 
 dependencies:
   flutter:

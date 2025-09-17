@@ -1,3 +1,8 @@
+## 0.1.1
+
+* **Custom indicator improvements** - Fixed custom indicator display by replacing deprecated `RefreshIndicator.noSpinner` with transparent styling approach (support much more version of flutter & dart)
+* **Version requirements update** - Updated minimum SDK version to 2.19.0 and Flutter version to 3.7.0 for better compatibility
+
 ## 0.1.0
 
 * **Lifecycle callbacks** - Added `onBeforeRefresh` and `onAfterRefresh` callbacks with flexible sync/async support
