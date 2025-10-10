@@ -1,6 +1,85 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
+/// Controller for [AnyRefreshableWidget] that allows programmatic refresh triggering.
+///
+/// This controller provides methods to trigger refresh operations programmatically
+/// without requiring user interaction. It can be used to refresh the widget
+/// from anywhere in your code.
+///
+/// Example usage:
+/// ```dart
+/// final controller = AnyRefreshableController();
+///
+/// // In your widget
+/// AnyRefreshableWidget(
+///   controller: controller,
+///   onRefresh: [...],
+///   builder: (context, isLoading, error) => ...,
+/// )
+///
+/// // Trigger refresh programmatically
+/// controller.refresh();
+/// ```
+class AnyRefreshableController extends ChangeNotifier {
+  _MultiFutureRefreshHandler? _handler;
+
+  /// Whether the controller is currently attached to a widget.
+  bool get isAttached => _handler != null;
+
+  /// Whether any refresh operation is currently in progress.
+  bool get isRefreshing => _handler?.isLoading ?? false;
+
+  /// The current error, if any.
+  Object? get error => _handler?.error;
+
+  /// Attaches this controller to a refresh handler.
+  /// This is called internally by [AnyRefreshableWidget].
+  void _attach(_MultiFutureRefreshHandler handler) {
+    assert(_handler == null, 'Controller is already attached to a widget');
+    _handler = handler;
+    _handler?.addListener(_handleStateChange);
+  }
+
+  /// Detaches this controller from its refresh handler.
+  /// This is called internally by [AnyRefreshableWidget].
+  void _detach() {
+    _handler?.removeListener(_handleStateChange);
+    _handler = null;
+  }
+
+  /// Triggers a refresh operation programmatically.
+  ///
+  /// This method will execute all the refresh functions defined in the
+  /// [AnyRefreshableWidget] that this controller is attached to.
+  ///
+  /// Returns a [Future] that completes when the refresh operation is done.
+  /// If the controller is not attached to a widget, this method does nothing
+  /// and returns a completed future.
+  ///
+  /// Example:
+  /// ```dart
+  /// await controller.refresh();
+  /// ```
+  Future<void> refresh() async {
+    if (_handler == null) {
+      return;
+    }
+
+    await _handler?.refresh();
+  }
+
+  void _handleStateChange() {
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _detach();
+    super.dispose();
+  }
+}
+
 /// A type-safe callback that can handle both synchronous and asynchronous operations.
 ///
 /// This typedef uses FutureOr which is the proper way to represent a function
@@ -162,8 +241,9 @@ class _RefreshWidgetState extends State<_RefreshWidget>
 
   // This method ensures that the child is wrapped in a scrollable widget
   Widget _ensureScrollable(Widget child) {
-    // Get the media query to get the height of the screen
-    final mediaQuery = MediaQuery.of(context);
+    // Get the media query to get the screen size and padding
+    final mediaSize = MediaQuery.sizeOf(context);
+    final mediaPadding = MediaQuery.paddingOf(context);
 
     // If the child is already a ScrollView, we don't need to wrap it
     if (child is ScrollView) {
@@ -177,7 +257,7 @@ class _RefreshWidgetState extends State<_RefreshWidget>
             physics: const AlwaysScrollableScrollPhysics(),
             child: SizedBox(
               width: double.infinity,
-              height: mediaQuery.size.height,
+              height: mediaSize.height,
               child: child,
             ),
           ),
@@ -192,10 +272,8 @@ class _RefreshWidgetState extends State<_RefreshWidget>
       physics: const AlwaysScrollableScrollPhysics(),
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          minHeight: mediaQuery.size.height -
-              (mediaQuery.padding.top +
-                  mediaQuery.padding.bottom +
-                  kToolbarHeight),
+          minHeight: mediaSize.height -
+              (mediaPadding.top + mediaPadding.bottom + kToolbarHeight),
         ),
         child: child,
       ),
@@ -259,38 +337,41 @@ class _MultiFutureRefreshHandler<T> extends ChangeNotifier {
   /// This method executes all futures according to the specified concurrency mode.
   /// It executes all futures and updates the loading and error states.
   Future<void> refresh() async {
-    // Call onBeforeRefresh callback before starting the refresh
-    if (_onBeforeRefresh != null) {
-      await _onBeforeRefresh!.call();
-    }
+    /// Add handler lock to prevent multiple refresh calls
+    if (!_isLoading) {
+      // Call onBeforeRefresh callback before starting the refresh
+      if (_onBeforeRefresh != null) {
+        await _onBeforeRefresh!.call();
+      }
 
-    _isLoading = true;
-    _error = null;
-    _safeNotifyListeners();
+      _isLoading = true;
+      _error = null;
+      _safeNotifyListeners();
 
-    try {
-      if (_concurrency == RefreshConcurrency.concurrent) {
-        // Execute all futures concurrently using Future.wait
-        final futures = _futureFunctions.map((fn) => fn()).toList();
-        await Future.wait(futures);
-      } else {
-        // Execute futures sequentially one by one
-        for (int i = 0; i < _futureFunctions.length; i++) {
-          if (_disposed) return;
-          await _futureFunctions[i]();
+      try {
+        if (_concurrency == RefreshConcurrency.concurrent) {
+          // Execute all futures concurrently using Future.wait
+          final futures = _futureFunctions.map((fn) => fn()).toList();
+          await Future.wait(futures);
+        } else {
+          // Execute futures sequentially one by one
+          for (int i = 0; i < _futureFunctions.length; i++) {
+            if (_disposed) return;
+            await _futureFunctions[i]();
+          }
         }
-      }
-    } catch (e) {
-      if (!_disposed) {
-        _error = e;
-      }
-    } finally {
-      if (!_disposed) {
-        _isLoading = false;
-        _safeNotifyListeners();
+      } catch (e) {
+        if (!_disposed) {
+          _error = e;
+        }
+      } finally {
+        if (!_disposed) {
+          _isLoading = false;
+          _safeNotifyListeners();
 
-        // Call onAfterRefresh callback after completing the refresh
-        _onAfterRefresh?.call();
+          // Call onAfterRefresh callback after completing the refresh
+          _onAfterRefresh?.call();
+        }
       }
     }
   }
@@ -374,6 +455,12 @@ class AnyRefreshableWidget<T> extends StatefulWidget {
   /// This function is called whenever the loading state or error state changes.
   final Widget Function(BuildContext, bool, Object?) builder;
 
+  /// Optional controller for programmatic refresh triggering.
+  ///
+  /// If provided, this controller can be used to trigger refresh operations
+  /// programmatically from anywhere in your code without requiring user interaction.
+  final AnyRefreshableController? controller;
+
   /// Predicate function to determine which scroll notifications trigger refresh.
   ///
   /// If null, uses the default scroll notification predicate. This can be used
@@ -425,6 +512,7 @@ class AnyRefreshableWidget<T> extends StatefulWidget {
     this.onBeforeRefresh,
     this.onAfterRefresh,
     required this.builder,
+    this.controller,
     this.concurrency = RefreshConcurrency.sequential,
     this.notificationPredicate,
     this.refreshColor,
@@ -469,6 +557,7 @@ class AnyRefreshableWidget<T> extends StatefulWidget {
     FlexibleCallback? onBeforeRefresh,
     VoidCallback? onAfterRefresh,
     required Widget Function(BuildContext, bool, Object?) builder,
+    AnyRefreshableController? controller,
     this.notificationPredicate,
     this.refreshColor,
     this.backgroundColor,
@@ -483,6 +572,7 @@ class AnyRefreshableWidget<T> extends StatefulWidget {
         ],
         onBeforeRefresh = onBeforeRefresh,
         onAfterRefresh = onAfterRefresh,
+        controller = controller,
         concurrency = RefreshConcurrency
             .sequential, // Single future doesn't need concurrency option
         builder =
@@ -506,11 +596,32 @@ class _AnyRefreshableWidgetState<T> extends State<AnyRefreshableWidget<T>> {
       concurrency: widget.concurrency,
     );
     _handler.addListener(_handleStateChange);
+
+    // Attach the controller if provided
+    widget.controller?._attach(_handler);
+  }
+
+  @override
+  void didUpdateWidget(AnyRefreshableWidget<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Handle controller changes
+    if (oldWidget.controller != widget.controller) {
+      // Detach old controller
+      oldWidget.controller?._detach();
+
+      // Attach new controller
+      widget.controller?._attach(_handler);
+    }
   }
 
   @override
   void dispose() {
     _handler.removeListener(_handleStateChange);
+
+    // Detach the controller if attached
+    widget.controller?._detach();
+
     _handler.dispose();
     super.dispose();
   }

@@ -1,3 +1,11 @@
+## 0.2.0
+
+* **Controller support** - Added `AnyRefreshableController` for programmatic refresh triggering
+* **Enhanced API** - Both `AnyRefreshableWidget` and `AnyRefreshableWidget.single` now accept optional controller parameter
+* **Programmatic refresh** - Trigger refresh operations from anywhere in your code
+* **Controller state management** - Access refresh state and errors through the controller
+* **Example updates** - Added comprehensive controller usage example in the example app
+
 ## 0.1.1
 
 * **Custom indicator improvements** - Fixed custom indicator display by replacing deprecated `RefreshIndicator.noSpinner` with transparent styling approach (support much more version of flutter & dart)

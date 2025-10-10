@@ -12,6 +12,7 @@ A powerful and flexible Flutter package that provides pull-to-refresh functional
 ## Features
 
 - 🔄 **Single & Multiple Future Support** - Handle one or multiple asynchronous operations
+- 🎮 **Controller Support** - Programmatic refresh triggering with state management
 - 🎨 **Customizable Refresh Indicator** - Full control over appearance and behavior
 - 📱 **Universal Widget Support** - Works with any widget, automatically makes content scrollable
 - 🎯 **Smart Error Handling** - Comprehensive error states and callbacks
@@ -26,7 +27,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  any_refreshable_widget: ^0.0.1
+  any_refreshable_widget: ^0.2.0
 ```
 
 Then run:
@@ -82,6 +83,26 @@ AnyRefreshableWidget(
     return const ContentWidget();
   },
 )
+```
+
+### Controller State Management
+
+Access refresh state and errors through the controller:
+
+```dart
+final controller = AnyRefreshableController();
+
+// Check if controller is attached to a widget
+if (controller.isAttached) {
+  // Check if refresh is in progress
+  bool isRefreshing = controller.isRefreshing;
+  
+  // Get current error, if any
+  Object? currentError = controller.error;
+  
+  // Trigger refresh programmatically
+  await controller.refresh();
+}
 ```
 
 ### Concurrency Control
@@ -277,7 +298,8 @@ AnyRefreshableWidget.single(
 |-----------|------|----------|---------|-------------|
 | `onRefresh` | `List<Future<void> Function()>` | ✅ | - | List of async functions to execute on refresh |
 | `builder` | `Widget Function(BuildContext, bool, Object?)` | ✅ | - | Builder function with loading and error states |
-| `concurrency` | `RefreshConcurrency` | ❌ | `concurrent` | How futures should be executed (concurrent/sequential) |
+| `controller` | `AnyRefreshableController?` | ❌ | `null` | Controller for programmatic refresh triggering |
+| `concurrency` | `RefreshConcurrency` | ❌ | `sequential` | How futures should be executed (concurrent/sequential) |
 | `onBeforeRefresh` | `FutureOr<void> Function()?` | ❌ | `null` | Callback executed before refresh starts (sync/async) |
 | `onAfterRefresh` | `VoidCallback?` | ❌ | `null` | Callback executed after refresh completes |
 | `refreshColor` | `Color?` | ❌ | `null` | Color of the refresh indicator |

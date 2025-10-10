@@ -49,3 +49,12 @@ app.*.map.json
 
 # Android
 /android/
+
+# macOS
+/macos/
+
+# Linux
+/linux/
+
+# Windows
+/windows/

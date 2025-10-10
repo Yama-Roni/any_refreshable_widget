@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:any_refreshable_widget/any_refreshable_widget.dart';
@@ -23,18 +24,59 @@ class MainApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          title: const Text('Refreshable Widget'),
-        ),
-        body: PageView.builder(
-          itemCount: pages.length,
-          itemBuilder: (context, index) {
-            return pages[index];
-          },
-        ),
+      home: Platform.isIOS || Platform.isAndroid
+          ? Scaffold(
+              appBar: AppBar(
+                backgroundColor: Colors.white,
+                title: const Text('Refreshable Widget'),
+              ),
+              body: PageView.builder(
+                itemCount: pages.length,
+                itemBuilder: (context, index) {
+                  return pages[index];
+                },
+              ),
+            )
+          : _NonMobilePage(),
+    );
+  }
+}
+
+/// Refresh with Controller
+class _NonMobilePage extends StatefulWidget {
+  @override
+  State<_NonMobilePage> createState() => _NonMobilePageState();
+}
+
+class _NonMobilePageState extends State<_NonMobilePage> {
+  final AnyRefreshableController _controller = AnyRefreshableController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  /// Trigger Refresh Programmatically
+  void _triggerRefresh() {
+    _controller.refresh();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: const Text('Refreshable Widget - Desktop'),
+        actions: [
+          IconButton(
+            onPressed: _triggerRefresh,
+            icon: const Icon(Icons.refresh),
+          ),
+          SizedBox(width: 16),
+        ],
       ),
+      body: _refreshWithController(_controller),
     );
   }
 }
@@ -120,6 +162,23 @@ Widget _refreshWithBeforeAfterCallback() {
     },
     builder: (context, isLoading, error) {
       return Center(child: Text('Refresh with Before After Callback'));
+    },
+  );
+}
+
+/// Refresh with Controller
+Widget _refreshWithController(AnyRefreshableController controller) {
+  return AnyRefreshableWidget.single(
+    controller: controller,
+    onRefresh: () async {
+      log('onRefresh');
+      await Future.delayed(const Duration(seconds: 2));
+      log('onRefresh done');
+    },
+    builder: (context, isLoading, error) {
+      return isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Center(child: Text('Refresh with Controller'));
     },
   );
 }
